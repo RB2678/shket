@@ -67,8 +67,8 @@ if __name__ == "__main__":
             send_message(),
             'cron',
             day=24,
-            hour=15,
-            minute=30
+            hour=13,
+            minute=55
         )
 
         scheduler10.start()
