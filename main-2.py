@@ -1,27 +1,41 @@
-import asyncio
-
-import telebot
-import requests
 import os
-import gdown
-from flask import Flask, request
-import datetime
-from apscheduler.schedulers.asyncio import AsyncIOScheduler
 import random
+import logging
+import requests
+from flask import Flask, request
+from apscheduler.schedulers.background import BackgroundScheduler
+import telebot
+from threading import Thread
 
 TOKEN = os.getenv("BOT_TOKEN")
 USER_ID = os.getenv("USER_ID")
-bot = telebot.TeleBot(TOKEN, parse_mode=None)
-messages = ["Тимур лох", "Тимур лох объелся блох", "Тимур блох объелся лох", "Тимур жопа", "Тимур пердун", "Тимур лошара", "Тимур шайтан", "Тимур ЛОХнесское чудовище",]
+server_url = os.getenv("RENDER_EXTERNAL_URL")
+
+bot = telebot.TeleBot(TOKEN, parse_mode="HTML")
 app = Flask(__name__)
 
-async def send_message():
-    message = random.choice(messages)
-    await bot.send_message(chat_id=USER_ID, text=message)
+messages = [
+    "Тимур лох",
+    "Тимур лох объелся блох",
+    "Тимур блох объелся лох",
+    "Тимур жопа",
+    "Тимур пердун",
+    "Тимур лошара",
+    "Тимур шайтан",
+    "Тимур ЛОХнесское чудовище",
+]
+
+def send_message():
+    try:
+        message = random.choice(messages)
+        bot.send_message(chat_id=USER_ID, text=message)
+        logging.info(f"Отправлено сообщение: {message}")
+    except Exception as e:
+        logging.error(f"Ошибка при отправке сообщения: {e}")
+
 @app.route('/')
 def index():
     return "Bot is running"
-
 
 @app.route(f'/{TOKEN}', methods=['POST'])
 def webhook():
@@ -33,52 +47,45 @@ def webhook():
 @bot.message_handler(commands=['start'])
 def send_welcome(message):
     try:
-        bot.send_message(message.chat.id, "Тимур лох, и я буду об этом напоминать тебе каждый месяц")
+        bot.send_message(
+            message.chat.id,
+            "Тимур лох, и я буду об этом напоминать тебе дважды в месяц 😈"
+        )
     except Exception as e:
         bot.send_message(message.chat.id, f"Ошибка: {e}")
 
+def run_flask():
+    port = int(os.environ.get("PORT", 10000))
+    app.run(host='0.0.0.0', port=port)
 
 if __name__ == "__main__":
-    server_url = os.getenv("RENDER_EXTERNAL_URL")
-    scheduler10 = AsyncIOScheduler()
-    scheduler20 = AsyncIOScheduler()
+    logging.basicConfig(level=logging.INFO)
+
     if server_url and TOKEN:
         webhook_url = f"{server_url}/{TOKEN}"
         set_webhook_url = f"https://api.telegram.org/bot{TOKEN}/setWebhook?url={webhook_url}"
         try:
             r = requests.get(set_webhook_url)
-            print("Webhook установлен:", r.text)
+            logging.info(f"Webhook установлен: {r.text}")
         except Exception as e:
-            print("Ошибка при установке webhook:", e)
+            logging.error(f"Ошибка при установке webhook: {e}")
+            
+        Thread(target=run_flask, daemon=True).start()
 
-        port = int(os.environ.get("PORT", 10000))
-        print(f"Starting server on port {port}")
-        app.run(host='0.0.0.0', port=port)
+        scheduler = BackgroundScheduler()
+        scheduler.add_job(send_message, 'cron', day=10, hour=12, minute=30)
+        scheduler.add_job(send_message, 'cron', day=24, hour=18, minute=10)
+        scheduler.start()
 
-        scheduler10.add_job(
-            send_message(),
-            'cron',
-            day=10,
-            hour=12,
-            minute=30
-        )
-
-        scheduler20.add_job(
-            send_message(),
-            'cron',
-            day=24,
-            hour=17,
-            minute=10
-        )
-
-        scheduler10.start()
-        scheduler20.start()
-
+        logging.info("Бот запущен. Ожидание событий...")
         try:
-            asyncio.get_event_loop().run_forever()
+            while True:
+                pass
         except KeyboardInterrupt:
-            pass
+            scheduler.shutdown()
+            logging.info("Бот остановлен.")
+
     else:
-        print("Запуск бота в режиме pooling")
+        logging.info("Запуск бота в режиме polling")
         bot.remove_webhook()
         bot.polling(none_stop=True)
