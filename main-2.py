@@ -59,15 +59,15 @@ if __name__ == "__main__":
             send_message(),
             'cron',
             day=10,
-            hour=13,
-            minute=00
+            hour=12,
+            minute=30
         )
 
         scheduler20.add_job(
             send_message(),
             'cron',
             day=24,
-            hour=12,
+            hour=15,
             minute=30
         )
 
