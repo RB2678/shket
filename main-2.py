@@ -6,8 +6,7 @@ import os
 import gdown
 from flask import Flask, request
 import datetime
-from apscheduler.schedulers.asyncio
-import AsyncIOScheduler
+from apscheduler.schedulers.asyncio import AsyncIOScheduler
 import random
 
 TOKEN = os.getenv("BOT_TOKEN")
@@ -60,8 +59,8 @@ if __name__ == "__main__":
             send_message(),
             'cron',
             day=10,
-            hour=12,
-            minute=30
+            hour=13,
+            minute=00
         )
 
         scheduler20.add_job(
