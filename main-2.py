@@ -73,12 +73,12 @@ if __name__ == "__main__":
         Thread(target=run_flask, daemon=True).start()
 
         scheduler = BackgroundScheduler()
-        scheduler.add_job(send_message, 'cron', day=5, hour=12, minute=30)
-        scheduler.add_job(send_message, 'cron', day=10, hour=12, minute=30)
-        scheduler.add_job(send_message, 'cron', day=15, hour=12, minute=30)
-        scheduler.add_job(send_message, 'cron', day=20, hour=12, minute=30)
-        scheduler.add_job(send_message, 'cron', day=25, hour=12, minute=30)
-        scheduler.add_job(send_message, 'cron', day=30, hour=12, minute=30)
+        scheduler.add_job(send_message, 'cron', day=5, hour=9, minute=30)
+        scheduler.add_job(send_message, 'cron', day=10, hour=9, minute=30)
+        scheduler.add_job(send_message, 'cron', day=15, hour=9, minute=30)
+        scheduler.add_job(send_message, 'cron', day=20, hour=9, minute=30)
+        scheduler.add_job(send_message, 'cron', day=25, hour=9, minute=30)
+        scheduler.add_job(send_message, 'cron', day=30, hour=9, minute=30)
         scheduler.start()
 
         logging.info("Бот запущен. Ожидание событий...")
